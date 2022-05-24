@@ -30,6 +30,7 @@ def main():
             else:
                 game.player.health += 25
 
+        # item interaction. This is going to change
         i = 0
         doors = ''
         if not game.current_room.has_item:
