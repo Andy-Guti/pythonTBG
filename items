@@ -1,0 +1,22 @@
+good_items = [
+                "a Shiny Sword",
+                "a Swiss Army Knife",
+                "a Super Charged Tazer",
+                "LOTR Mace",
+            ]
+
+bad_items = [
+                "a Nasty Knife",
+                "a Flare Gun",
+                "The Pointiest of Sticks",
+                "a Shabby Sickle",
+                "Bear Spray",
+            ]
+
+great_items = [
+                "Cheese Slicing Katana",
+                "Bazooka",
+                "Dead Man's Dagger",
+                "Carnivorous Cleaver",
+                "Legolas' Bow",
+            ]
