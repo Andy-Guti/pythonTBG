@@ -20,8 +20,9 @@ def main():
     #game.create_map()
 
     while True:
-        # basis of game
-
+        # For NPC
+        skip = False
+        
         # PlaceHolder for regenerating health. Potentially replace with potions or something
         if game.player.health < 100:
             if game.player.health > 75:
@@ -94,32 +95,15 @@ def main():
 
         if game.current_room.npc != None:
             print("You see a person with a shop setup in this room!\n")
-            choice = input("(1) Continue on into a different room\n(2) Approach the Shop")
+            choice = input("(1) Continue on into a different room\n(2) Approach the Shop\n")
             os.system('clear')
             if choice == '1':
-                next_room = game.came_from
-                came_from = game.current_room
-                for keys, values in came_from.neighbor.items():
-                    if values == next_room.id:
-                        if keys == "north":
-                            game.player_model.setheading(90)
-                            game.player_model.forward(50)
-                        elif keys == "south":
-                            game.player_model.setheading(270)
-                            game.player_model.forward(50)
-                        elif keys == "west":
-                            game.player_model.setheading(180)
-                            game.player_model.forward(50)
-                        else:
-                            game.player_model.setheading(0)
-                            game.player_model.forward(50)
-                game.current_room = next_room
-                game.came_from = came_from
-                continue
+                skip = True
+                pass
             if choice == '2':
-                print("Great!")
+                game.npc_shop()
                 continue
-            else:
+            elif not skip:
                 print(choice + ' is not an acceptable input')
                 continue
 

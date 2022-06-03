@@ -14,7 +14,7 @@ class Npc:
         while increment < 3:
             rand_num = random.randint(0, 2)
             new_weapon = Weapon()
-            new_weapon.damage = 12
+            new_weapon.damage = 14
             new_weapon.durability = 32
             new_weapon.price = 15
             if increment == 0:
@@ -35,7 +35,6 @@ class Npc:
                 self.inventory.append(new_weapon)
                 increment += 1
                 continue
-            
 
 
 class Enemy:
@@ -43,7 +42,7 @@ class Enemy:
     def __init__(self):
         self.health = 50
         self.damage = 0
-        self.gold = random.randint(1,5)
+        self.gold = random.randint(1, 5)
 
 
 class Player:
@@ -51,7 +50,7 @@ class Player:
         start_weapon = Weapon()
         start_weapon.name = "rusty sword"
         start_weapon.durability = 25
-        start_weapon.damage = 8
+        start_weapon.damage = 50
         start_weapon.type = "melee"
         self.items = []
         self.items.append(start_weapon)

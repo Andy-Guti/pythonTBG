@@ -24,7 +24,7 @@ class Game:
         ]
         i = 1
         room_amount = 0
-        npc_int = random.randint(0, 19)
+        npc_int = random.randint(2, 4)
         while room_amount < 20:
             reset = False
             game_key_list = list(self.roomDict.keys())
@@ -67,9 +67,12 @@ class Game:
             ) = self.room_setup()
             
             if npc_int == room_amount:
-                new_npc = Npc()
-                new_npc.create_inventory()
-                new_room.npc = new_npc
+                if not new_room.has_enemy:
+                    new_npc = Npc()
+                    new_npc.create_inventory()
+                    new_room.npc = new_npc
+                else:
+                    npc_int += 1
 
             new_room.position = (new_x, new_y)
             self.draw_square(new_room.position)
@@ -151,6 +154,7 @@ class Game:
         self.player_model.pensize(1)
         return
 
+    # not used currently
     def insert_item(self):
 
         rand_num2 = random.randint(0, 100)
@@ -220,7 +224,7 @@ class Game:
         if rand_num1 <= 33:
             room_type = "hard"
             has_enemy = True
-            enemy_damage = random.randint(15, 30)
+            enemy_damage = random.randint(8, 20)
         """
         if rand_num2 > 10:
             has_item = True
@@ -253,7 +257,7 @@ class Game:
         )
         time.sleep(4)
         print(
-            "\nYou see an old a weary man sitting by himself in the corner of the room. You decide to approach him."
+            "\nYou see an old weary man sitting by himself in the corner of the room. You decide to approach him."
         )
         time.sleep(4)
         print(
@@ -362,3 +366,31 @@ class Game:
 
     def inventory(self):
         return
+
+    def npc_shop(self):
+        print("Welcome to my shop!\nFeel free to browse my selection and if you have something nice ill buy it off ya too!\n")
+        while True:
+            choice = input("(1) Buy\n(2) Sell\n(3) Leave\n")
+            os.system('clear')
+            if choice == '1':
+                item_names = ""
+                i = 0
+                for x in self.current_room.npc.inventory:
+                    i += 1
+                    if i < (len(self.current_room.npc.inventory)):
+                        item_names += '(' + str(i) + ') ' + x.name + '     Price: ' + str(x.price) + '\n       Durability: ' + str(x.durability) + '       Power: ' + str(x.damage) + '\n\n'
+                    if i == len(self.current_room.npc.inventory):
+                        item_names += '(' + str(i) + ') ' + x.name + '     Price: ' + str(x.price) + '\n       Durability: ' + str(x.durability) + '       Power: ' + str(x.damage)
+                buy = input("Here's what I've got for ya today:\n" + item_names + '\n\n(' + str(i+1) + ') ' + "Nevermind\n")
+                if int(buy) == i+1:
+                    os.system('clear')
+                    continue
+                else:
+                    self.player.items.append(self.current_room.npc.inventory[int(buy)-1])
+                    self.player.gold -= self.current_room.npc.inventory[int(buy)-1].price
+                    del self.current_room.npc.inventory[int(buy)-1]
+                    continue
+            if choice == '2':
+                return
+            if choice == '3':
+                return
