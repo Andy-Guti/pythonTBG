@@ -20,8 +20,9 @@ def main():
     #game.create_map()
 
     while True:
-        # basis of game
-
+        # For NPC
+        skip = False
+        
         # PlaceHolder for regenerating health. Potentially replace with potions or something
         if game.player.health < 100:
             if game.player.health > 75:
@@ -30,13 +31,18 @@ def main():
             else:
                 game.player.health += 25
 
+       
+
         # item interaction. This is going to change
-        i = 0
-        doors = ''
+        """
         if not game.current_room.has_item:
             has_item = 'There are no items in this room.\n'
         if game.current_room.has_item:
             has_item = 'You see an item in the corner of the room!\n'
+        """
+
+        i = 0
+        doors = ''
         for x in game.current_room.neighbor:
             i += 1
             if i < len(game.current_room.neighbor):
@@ -45,7 +51,8 @@ def main():
                 doors += 'and '
             if i == len(game.current_room.neighbor):
                 doors += x
-        print(has_item + 'There is a door to the ' + doors + '.\n')
+        #print(has_item + 'There is a door to the ' + doors + '.\n')
+        print('There is a door to the ' + doors + '.\n')
         number = 0
 
 
@@ -86,7 +93,23 @@ def main():
                 continue
                 #self.game(current_room, player, came_from)
 
+        if game.current_room.npc != None:
+            print("You see a person with a shop setup in this room!\n")
+            choice = input("(1) Continue on into a different room\n(2) Approach the Shop\n")
+            os.system('clear')
+            if choice == '1':
+                skip = True
+                pass
+            if choice == '2':
+                game.npc_shop()
+                continue
+            elif not skip:
+                print(choice + ' is not an acceptable input')
+                continue
+
+        
         # what do you want to do
+        """
         if game.current_room.has_item:
             number = input("Do you... \n\n (1) Pick up the Item \n (2) Go through a door \n\n(type in a number)\n")
             os.system('clear')
@@ -116,6 +139,8 @@ def main():
             else:
                 game.current_room.has_item = False       
                 game.player.items.append(game.current_room.item)
+        """
+        
         if not game.current_room.has_item or number == '2':
             where_to_go = input("Which door do you decide to enter?\n(type in a direction i.e. north)\n")
             os.system('clear')
@@ -132,6 +157,7 @@ def main():
                         item_names += '(' + str(i) + ') ' + x.name + '       Durability: ' + str(x.durability) + '       Power: ' + str(x.damage)
 
                 print('your items are:\n' + item_names + '\n')
+                print("Gold: " + str(game.player.gold) + "\n")
                 continue
                 #self.game(current_room, player, came_from)
             # might not be needed
