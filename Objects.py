@@ -43,6 +43,7 @@ class Enemy:
         self.health = 50
         self.damage = 0
         self.gold = random.randint(1, 5)
+        self.experience = random.randint(10, 20)
 
 
 class Player:
@@ -95,6 +96,7 @@ class Room:
         self.enemy = Enemy()
         self.has_enemy = False
         self.position = (0, 0)
+        self.ladder = False
 
     def addNeighbor(self, direction, id):
         self.neighbor[direction] = id
