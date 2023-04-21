@@ -53,13 +53,14 @@ class Player:
         start_weapon.durability = 25
         start_weapon.damage = 50
         start_weapon.type = "melee"
-        self.items = []
-        self.items.append(start_weapon)
+        self.items = {}
+        self.items[start_weapon.name] = start_weapon
         self.health = 100
         self.experience = 0
         self.level = 0
         self.inventory_space = 3
         self.gold = 10
+        self.equiped_weapon = None
 
     def level_up(self):
         self.experience = 0
