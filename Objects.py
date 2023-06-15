@@ -52,7 +52,7 @@ class Player:
         start_weapon.name = "rusty sword"
         start_weapon.durability = 25
         start_weapon.damage = 50
-        start_weapon.type = "melee"
+        start_weapon.type = "Melee"
         self.items = {}
         self.items[start_weapon.name] = start_weapon
         self.health = 100

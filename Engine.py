@@ -9,18 +9,27 @@ class Game:
         self.numRooms = 0
         self.current_room = Room()
         self.came_from = Room()
-        self.player = Player()
         self.floor = 0
+
+        self.player = Player()
+        
         self.center_x = 0
         self.center_y = 0
         self.map_center_x = 0
         self.map_center_y = 0
+
         self.main_screen = None
+
         self.map_window = None
+        self.map_border_window = None
         self.status_window = None
+        self.status_border_window = None
         self.options_window = None
+        self.options_border_window = None
         self.main_window = None
+        self.main_border_window = None
         self.current_window = str
+
         self.current_option = 0
         self.selected_option = -1
         self.options_max = 0
@@ -49,16 +58,18 @@ class Game:
         return
     #not currently used/should be updated for new map_window
     def update_pos(self):
-        old_center_x, old_center_y = self.roomDict[0].position
-        self.roomDict[0].position = (self.map_center_x, self.map_center_y)
+        old_center_x, old_center_y = self.came_from.position
+        diff_x = old_center_x - self.current_room.position[0]
+        diff_y = old_center_y - self.current_room.position[1]
+        self.current_room.position = (self.map_center_x, self.map_center_y)
         for room in self.roomDict.values():
-            diff_x = old_center_x - room.position[0]
-            new_x = self.roomDict[0].position[0] - diff_x
-            diff_y = old_center_y - room.position[1]
-            new_y = self.roomDict[0].position[1] - diff_y
-            
-            room.position = (new_x,new_y)
-
+            if room.id != self.current_room.id:
+                new_x = room.position[0] + diff_x
+                new_y = room.position[1] + diff_y
+                room.position = (new_x,new_y)
+        self.map_window.clear()
+        self.draw_map(self.map_window)
+        self.map_window.refresh()
         return
 
     def draw_map(self,stdscr):
@@ -180,11 +191,17 @@ class Game:
     def draw_square(self, stdscr,box_width, box_height, center_x, center_y):
         
         for i in range(box_width):
-                stdscr.addstr(center_y-int(box_height//2), center_x-int(box_width//2)+i, "#")
-                stdscr.addstr(center_y+int(box_height//2)-1, center_x-int(box_width//2)+i, "#")
+                try:
+                    stdscr.addstr(center_y-int(box_height//2), center_x-int(box_width//2)+i, "#")
+                    stdscr.addstr(center_y+int(box_height//2)-1, center_x-int(box_width//2)+i, "#")
+                except:
+                    continue
         for j in range(box_height):
-            stdscr.addstr(center_y-int(box_height//2)+j,center_x-int(box_width//2),"#")
-            stdscr.addstr(center_y-int(box_height//2)+j,center_x+int(box_width//2),"#")
+            try:
+                stdscr.addstr(center_y-int(box_height//2)+j,center_x-int(box_width//2),"#")
+                stdscr.addstr(center_y-int(box_height//2)+j,center_x+int(box_width//2),"#")
+            except:
+                continue
         return
 
     def new_floor(self):
@@ -276,12 +293,14 @@ class Game:
                         self.current_room.enemy.health <= 0
                     ):
                         self.print_str(self.main_window, "Your weapon broke!", 2)
-                        self.player.items.remove(chosenWeapon)
+                        del self.player.items[chosenWeapon]
+                        self.player.equiped_weapon = None
                         curses.napms(2000)
                         continue
                     elif chosenWeapon.durability <= 0:
                         self.print_str(self.main_window, "Your weapon broke! Choose new weapon. ", 2)
                         del self.player.items[chosenWeapon.name]
+                        self.player.equiped_weapon = None
                     self.selected_option = -1
                     continue
                 if self.selected_option == 1:
@@ -390,7 +409,6 @@ class Game:
                     if self.current_room.npc.inventory[self.selected_option].price > self.player.gold:
                         self.main_window.clear()
                         self.print_str(self.main_window, "You don't have enough money for that!")
-                        self.main_window.box()
                         self.main_window.refresh()
                         curses.napms(2000)
                         self.selected_option = -1
@@ -400,7 +418,6 @@ class Game:
                         self.player.gold -= self.current_room.npc.inventory[self.selected_option].price
                         self.main_window.clear()
                         self.print_str(self.main_window,"You obtained " + self.current_room.npc.inventory[self.selected_option].name)
-                        self.main_window.box()
                         self.main_window.refresh()
                         del self.current_room.npc.inventory[self.selected_option]
                         curses.napms(2000)
@@ -433,10 +450,10 @@ class Game:
                 else:
                     self.player.gold += self.player.items[inventory_item_names[self.selected_option]].price
                     self.current_room.npc.inventory.append(self.player.items[inventory_item_names[self.selected_option]])
+                    self.player.equiped_weapon = None
                     del self.player.items[inventory_item_names[self.selected_option]]
                     self.main_window.clear()
                     self.print_str(self.main_window,"You Sold " + inventory_item_names[self.selected_option])
-                    self.main_window.box()
                     self.main_window.refresh()
                     curses.napms(2000)
                     self.selected_option = -1
@@ -449,11 +466,11 @@ class Game:
         self.status_window.clear()
         self.options_window.clear()
         self.main_window.clear()
-        self.main_screen.clear()
+        #self.main_screen.clear()
         return
 
     def refresh_scr(self):
-        self.main_screen.refresh()
+        #self.main_screen.refresh()
         self.map_window.refresh()
         self.status_window.refresh()
         self.options_window.refresh()
@@ -476,12 +493,14 @@ class Game:
         
         
         #self.draw_square(stdscr, box_width, box_height, center_x, center_y)
+        
         self.draw_map(self.map_window)
-        #map_window.border()
+        """
         self.map_window.box()
         self.status_window.box()
         self.options_window.box()
         self.main_window.box()
+        """
         # Refresh the screen
         
         
