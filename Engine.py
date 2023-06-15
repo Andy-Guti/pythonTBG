@@ -3,8 +3,7 @@ import turtle
 import random
 import os
 import time
-
-
+ 
 class Game:
     def __init__(self):
         self.roomDict = {}
@@ -24,10 +23,14 @@ class Game:
         ]
         i = 1
         room_amount = 0
-        npc_int = random.randint(2, 4)
-        while room_amount < 20:
+        room_max = 7
+        npc_int = random.randint(round((room_max/6)-2), round(room_max/6))
+        down_shaft_int = random.randint(round((room_max/2)-2), round(room_max/2))
+        floor_modifier = self.floor * 1.275
+
+        while room_amount < room_max:
             reset = False
-            game_key_list = list(self.roomDict.keys())
+            # game_key_list = list(self.roomDict.keys())
             game_val_list = list(self.roomDict.values())
 
             rand_num = random.randint(0, 3)
@@ -64,16 +67,22 @@ class Game:
                 #new_room.has_item,
                 new_room.enemy.damage,
                 #new_room.item,
-            ) = self.room_setup()
+            ) = self.room_setup(floor_modifier)
+            new_room.enemy.health += floor_modifier
             
-            if npc_int == room_amount:
-                if not new_room.has_enemy:
-                    new_npc = Npc()
-                    new_npc.create_inventory()
-                    new_room.npc = new_npc
+            if self.floor % 3 == 0:
+                if npc_int == room_amount:
+                    if not new_room.has_enemy:
+                        new_npc = Npc()
+                        new_npc.create_inventory()
+                        new_room.npc = new_npc
+                    else:
+                        npc_int += 1
+            if room_amount == down_shaft_int:
+                if new_room.npc is None:
+                    new_room.ladder = True
                 else:
-                    npc_int += 1
-
+                    down_shaft_int += 1
             new_room.position = (new_x, new_y)
             self.draw_square(new_room.position)
             self.draw_door(direct[0], new_room.position)
@@ -89,6 +98,7 @@ class Game:
     def draw_square(self, position):
         self.player_model.penup()
         self.player_model.speed(100)
+        self.player_model.pencolor('black')
 
         self.player_model.setpos(position)
         self.player_model.setheading(90)
@@ -209,7 +219,7 @@ class Game:
 
         return rand_item
 
-    def room_setup(self):
+    def room_setup(self, modifier):
         rand_num1 = random.randint(0, 100)
         rand_num2 = random.randint(0, 100)
 
@@ -224,7 +234,7 @@ class Game:
         if rand_num1 <= 33:
             room_type = "hard"
             has_enemy = True
-            enemy_damage = random.randint(8, 20)
+            enemy_damage = random.randint(8, 20) + modifier
         """
         if rand_num2 > 10:
             has_item = True
@@ -233,6 +243,27 @@ class Game:
 
         #return (room_type, has_enemy, has_item, enemy_damage, item)
         return (room_type, has_enemy, enemy_damage)
+
+    def new_floor(self):
+        self.roomDict = {}
+        self.numRooms = 0
+        self.player_model.clear()
+
+        self.current_room = Room()
+        self.current_room.id = 0
+        self.current_room.type = "easy"
+        self.current_room.has_enemy = False
+        self.current_room.has_item = False
+        self.current_room.position = (0, 0)
+
+        self.draw_square(self.current_room.position)
+
+        self.came_from = Room()
+        self.roomDict[self.current_room.id] = self.current_room
+        self.numRooms += 1
+        # self.create_game()
+        self.create_random_map()
+        return
 
     def game_setup(self):
         self.current_room = Room()
@@ -342,6 +373,8 @@ class Game:
                     if (chosenWeapon.durability <= 0) and (
                         self.current_room.enemy.health <= 0
                     ):
+                        print("Your weapon broke!\n")
+                        self.player.items.remove(chosenWeapon)
                         continue
                     elif chosenWeapon.durability <= 0:
                         print("Your weapon broke! Choose new weapon. \n")
@@ -364,7 +397,20 @@ class Game:
                     weaponDamage = chosenWeapon.damage
         return 1
 
+    # Need to implement
     def inventory(self):
+        item_names = ''
+        i = 0
+        for x in self.player.items:
+            i += 1
+            if i < (len(self.player.items)):
+                item_names += '(' + str(i) + ') ' + x.name + '       Durability: ' + str(x.durability) + '       Power: ' + str(x.damage) + '\n'
+            if i == len(self.player.items):
+                item_names += '(' + str(i) + ') ' + x.name + '       Durability: ' + str(x.durability) + '       Power: ' + str(x.damage)
+
+        print('your items are:\n' + item_names + '\n')
+        print("Gold: " + str(self.player.gold) + "\n")
+        input('\n\n\n press any key to continue...\n')
         return
 
     def npc_shop(self):
@@ -381,16 +427,48 @@ class Game:
                         item_names += '(' + str(i) + ') ' + x.name + '     Price: ' + str(x.price) + '\n       Durability: ' + str(x.durability) + '       Power: ' + str(x.damage) + '\n\n'
                     if i == len(self.current_room.npc.inventory):
                         item_names += '(' + str(i) + ') ' + x.name + '     Price: ' + str(x.price) + '\n       Durability: ' + str(x.durability) + '       Power: ' + str(x.damage)
+                print("Your Gold: " + str(self.player.gold) + "\n\n")
                 buy = input("Here's what I've got for ya today:\n" + item_names + '\n\n(' + str(i+1) + ') ' + "Nevermind\n")
                 if int(buy) == i+1:
                     os.system('clear')
                     continue
                 else:
-                    self.player.items.append(self.current_room.npc.inventory[int(buy)-1])
-                    self.player.gold -= self.current_room.npc.inventory[int(buy)-1].price
-                    del self.current_room.npc.inventory[int(buy)-1]
-                    continue
+                    if self.player.gold < self.current_room.npc.inventory[int(buy)-1].price:
+                        os.system('clear')
+                        print("You don't have enough money for that!")
+                        time.sleep(2)
+                        os.system('clear')
+                        continue
+                    else:
+                        self.player.items.append(self.current_room.npc.inventory[int(buy)-1])
+                        self.player.gold -= self.current_room.npc.inventory[int(buy)-1].price
+                        os.system('clear')
+                        print("You obtained " + self.current_room.npc.inventory[int(buy)-1].name + "!\n")
+                        time.sleep(2)
+                        del self.current_room.npc.inventory[int(buy)-1]
+                        os.system('clear')
+                        continue
             if choice == '2':
-                return
+                player_items = ''
+                j = 0
+                for y in self.player.items:
+                    j += 1
+                    if j < (len(self.player.items)):
+                        player_items += '(' + str(j) + ') ' + y.name + '       Durability: ' + str(y.durability) + '       Power: ' + str(y.damage) + '\n'
+                    if j == len(self.player.items):
+                        player_items += '(' + str(j) + ') ' + y.name + '       Durability: ' + str(y.durability) + '       Power: ' + str(y.damage)
+
+                sell = input("Which Item would you like to sell?\n" + player_items + '\n\n(' + str(j+1) + ') ' + "Nevermind\n")
+                if int(sell) == j+1:
+                    os.system('clear')
+                    continue
+                else:
+                    self.player.gold += self.player.items[int(sell)-1].price
+                    del self.player.items[int(sell)-1]
+                    os.system('clear')
+                    print("You now have " + str(self.player.gold) + " gold!")
+                    time.sleep(2)
+                    os.system('clear')
+                    continue
             if choice == '3':
                 return

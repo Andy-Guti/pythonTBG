@@ -6,7 +6,7 @@ class Npc:
         self.inventory = []
 
     def create_inventory(self):
-        melee_weapons = ["Rapier", "Broadsword", "shortsword"]
+        melee_weapons = ["Rapier", "Broadsword", "Shortsword"]
         ranged_weapons = ["Bow", "Crossbow", "Longbow"]
         magic_weapons = ["Wand", "Fire Staff", "Ice Staff"]
 
@@ -43,6 +43,7 @@ class Enemy:
         self.health = 50
         self.damage = 0
         self.gold = random.randint(1, 5)
+        self.experience = random.randint(10, 20)
 
 
 class Player:
@@ -52,13 +53,14 @@ class Player:
         start_weapon.durability = 25
         start_weapon.damage = 50
         start_weapon.type = "melee"
-        self.items = []
-        self.items.append(start_weapon)
+        self.items = {}
+        self.items[start_weapon.name] = start_weapon
         self.health = 100
         self.experience = 0
         self.level = 0
         self.inventory_space = 3
         self.gold = 10
+        self.equiped_weapon = None
 
     def level_up(self):
         self.experience = 0
@@ -95,6 +97,7 @@ class Room:
         self.enemy = Enemy()
         self.has_enemy = False
         self.position = (0, 0)
+        self.ladder = False
 
     def addNeighbor(self, direction, id):
         self.neighbor[direction] = id
