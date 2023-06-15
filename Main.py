@@ -20,7 +20,11 @@ def Main(stdscr):
     game.main_screen.refresh()
 
     # Map window setup
-    game.map_window = curses.newwin(height-seperation_y, width-seperation_x, 0, seperation_x)
+    game.map_window = curses.newwin(height-seperation_y-2, width-seperation_x-2, 1, seperation_x+1)
+    game.map_border_window = curses.newwin(height-seperation_y, width-seperation_x, 0, seperation_x)
+    game.map_border_window.box()
+    game.map_border_window.refresh()
+
     map_height, map_width = game.map_window.getmaxyx()
     map_center_x = int(map_width//2)
     map_center_y = int(map_height//2)
@@ -28,13 +32,22 @@ def Main(stdscr):
     game.map_center_y = map_center_y
 
     #Status window
-    game.status_window = curses.newwin(height-(height-seperation_y), width-seperation_x,height-seperation_y, seperation_x)
+    game.status_window = curses.newwin(height-(height-seperation_y)-2, width-seperation_x-2,height-seperation_y+1, seperation_x+1)
+    game.status_border_window = curses.newwin(height-(height-seperation_y), width-seperation_x,height-seperation_y, seperation_x)
+    game.status_border_window.box()
+    game.status_border_window.refresh()
 
     #Options window
-    game.options_window = curses.newwin(int(0.4*height), seperation_x, height-int(0.4*height), 0)
+    game.options_window = curses.newwin(int(0.4*height)-2, seperation_x-2, height-int(0.4*height)+1,1)
+    game.options_border_window = curses.newwin(int(0.4*height), seperation_x, height-int(0.4*height), 0)
+    game.options_border_window.box()
+    game.options_border_window.refresh()
 
     #Main window
-    game.main_window = curses.newwin((height-int(0.4*height)), seperation_x, 0, 0)
+    game.main_window = curses.newwin((height-int(0.4*height))-2, seperation_x-2, 1, 1)
+    game.main_border_window = curses.newwin((height-int(0.4*height)), seperation_x, 0, 0)
+    game.main_border_window.box()
+    game.main_border_window.refresh()
 
     # Start colors in curses
     curses.start_color()
@@ -135,6 +148,7 @@ def Main(stdscr):
                 came_from = game.current_room
                 game.current_room = next_room
                 game.came_from = came_from
+                game.update_pos()
                 game.selected_option = -1
                 continue
                 #self.game(next_room, player, came_from)
@@ -143,7 +157,6 @@ def Main(stdscr):
                     game.selected_option = -1
                     game.main_window.clear()
                     game.print_str(game.main_window, "Please equip a weapon")
-                    game.main_window.box()
                     game.main_window.refresh()
                     curses.napms(2000)
                     continue
@@ -168,8 +181,6 @@ def Main(stdscr):
                 game.selected_option = -1
                 game.main_window.clear()
                 game.options_window.clear()
-                game.main_window.box()
-                game.options_window.box()
                 game.main_window.refresh()
                 game.options_window.refresh()
                 skip = True
@@ -180,8 +191,6 @@ def Main(stdscr):
                 skip = True
                 game.main_window.clear()
                 game.options_window.clear()
-                game.main_window.box()
-                game.options_window.box()
                 game.main_window.refresh()
                 game.options_window.refresh()
                 continue
@@ -238,11 +247,13 @@ def Main(stdscr):
                     game.print_str(game.main_screen,"no room in that direction")
                     game.selected_option = -1
                     continue
+                
                 came_from = game.current_room
                 next_room = game.roomDict[game.roomDict[game.current_room.id].neighbor[direction]]
 
                 game.current_room = next_room
                 game.came_from = came_from
+                game.update_pos()
                 game.selected_option = -1
                 skip = False
                 continue
