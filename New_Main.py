@@ -17,6 +17,7 @@ def Main(stdscr):
     seperation_x = int(width//1.4)
     seperation_y = int(height//1.6)
     
+    curses.curs_set(0)
     # Clear and refresh the screen for a blank canvas
     game.main_screen.clear()
     game.main_screen.refresh()
@@ -65,20 +66,21 @@ def Main(stdscr):
     game.print_str(game.main_window, "Press any key to start...", game.main_window.getmaxyx()[0]-4)
     game.refresh_scr()
     x = game.main_screen.getch()
-
+    skip = False
     game.clear_scr()
+    
     while (k != ord('q')):
         # For NPC
-        skip = False
-        curses.napms(100)
+         
+        curses.napms(16)
         game.clear_scr()
         game.refresh_scr()
         game.window_boarders()
         game.map_window.addstr(game.current_room.position[1],game.current_room.position[0], "X", curses.A_BLINK)
 
-        if k == curses.KEY_DOWN:
+        if k == curses.KEY_DOWN and game.current_option != game.options_max -1:
             game.current_option += 1
-        if k == curses.KEY_UP:
+        if k == curses.KEY_UP and game.current_option != 0:
             game.current_option -= 1
         if k == curses.KEY_LEFT:
             game.current_window = "options_window"
@@ -122,9 +124,11 @@ def Main(stdscr):
 
         # enemy encounter
         if game.current_room.has_enemy:
-            game.print_str(game.main_window, 'There is an enemy in this room!\n What do you choose to do?')
+            game.print_str(game.main_window, 'There is an enemy in this room!')
+            game.print_str(game.main_window, 'What do you choose to do?',1)
             enemy_room_options = ["Flee the room the way you came", "Stand and Fight"]
             game.options(game.options_window, enemy_room_options, "options_window")
+            game.options_max = len(enemy_room_options)
             game.refresh_scr()
             if game.selected_option < 0:
                 k = game.main_screen.getch()
@@ -139,9 +143,12 @@ def Main(stdscr):
                 #self.game(next_room, player, came_from)
             if game.selected_option == 1:
                 if game.player.equiped_weapon == None:
+                    game.selected_option = -1
                     game.main_window.clear()
                     game.print_str(game.main_window, "Please equip a weapon")
+                    game.main_window.box()
                     game.main_window.refresh()
+                    curses.napms(2000)
                     continue
                 success = game.combat()
                 if (success == 0):
@@ -151,28 +158,45 @@ def Main(stdscr):
                 #self.game(current_room, player, came_from)
                 #self.game(current_room, player, came_from)
 
-        if game.current_room.npc != None:
+        if (game.current_room.npc != None) and skip == False:
             game.print_str(game.main_window,"You see a person with a shop setup in this room!")
             npc_room_options = ["Continue on into a different room", "Approach the Shop"]
             game.options(game.options_window, npc_room_options, "options_window")
+            game.options_max = len(npc_room_options)
             game.refresh_scr()
             if game.selected_option < 0:
                 k = game.main_screen.getch()
                 continue
             if game.selected_option == 0:
                 game.selected_option = -1
+                game.main_window.clear()
+                game.options_window.clear()
+                game.main_window.box()
+                game.options_window.box()
+                game.main_window.refresh()
+                game.options_window.refresh()
                 skip = True
-                pass
+                continue
             if game.selected_option == 1:
                 game.selected_option = -1
                 game.npc_shop()
+                skip = True
+                game.main_window.clear()
+                game.options_window.clear()
+                game.main_window.box()
+                game.options_window.box()
+                game.main_window.refresh()
+                game.options_window.refresh()
                 continue
         
         # NEXT FLOOR
-        if game.current_room.ladder is True:
-            game.print_str(game.main_window, "You find a ladder leading down to the next floor.\nThere seems to be a drop so you can't make it back up after you drop down...\nWhat do you chose?")
+        if (game.current_room.ladder is True) and skip == False:
+            game.print_str(game.main_window, "You find a ladder leading down to the next floor.")
+            game.print_str(game.main_window, "There seems to be a drop so you can't make it back up after you drop down...", 1)
+            game.print_str(game.main_window, "What do you chose?", 2)
             drop_down_options = ["Take the Plunge!", "Stay on this floor for now"]
             game.options(game.options_window, drop_down_options, "options_window")
+            game.options_max = len(drop_down_options)
             game.refresh_scr()
             if game.selected_option < 0:
                 k = game.main_screen.getch()
@@ -181,9 +205,11 @@ def Main(stdscr):
                 game.selected_option = -1
                 game.new_floor()
                 game.floor += 1
+                continue
             if game.selected_option == 1:
                 game.selected_option = -1
-                pass
+                skip = True
+                continue
 
 
 
@@ -195,6 +221,7 @@ def Main(stdscr):
             avail_doors.sort()
             game.print_str(game.main_window,"Which door do you decide to enter?")
             game.options(game.options_window, avail_doors, "options_window")
+            game.options_max = len(avail_doors)
             directions1 = ['north', 'n', 'east', 'e']
             directions2 = ['south', 's', 'west', 'w']
             game.refresh_scr()
@@ -220,12 +247,13 @@ def Main(stdscr):
                 game.current_room = next_room
                 game.came_from = came_from
                 game.selected_option = -1
-                print(str(game.selected_option))
+                skip = False
                 continue
             else:
                 print("Invalid input")
                 time.sleep(1)
                 continue
+        
 
     print('Game Over :(')
     return

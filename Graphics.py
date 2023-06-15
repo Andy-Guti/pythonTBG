@@ -24,6 +24,7 @@ class Game:
         self.current_window = str
         self.current_option = 0
         self.selected_option = -1
+        self.options_max = 0
     
     def game_setup(self):
         blank_dict = {}
@@ -44,8 +45,6 @@ class Game:
         # self.create_game()
         self.create_random_map()
         # self.med_game()
-        
-    
     def print_str(self, stdscr, str, y=0, x=0):
         stdscr.addstr(y+2,x+2,str)
         return
@@ -208,7 +207,7 @@ class Game:
         # self.create_game()
         self.create_random_map()
         return
-    #need to fix
+    # needs some tuning
     def combat(self):
         # combat system
         k=0
@@ -266,24 +265,24 @@ class Game:
                     continue
 
                 if self.selected_option == 0:
-                    weaponDamage = chosenWeapon.damage
-                    self.current_room.enemy.health -= weaponDamage
-                    self.player.health -= enemyDamage
+                    weaponDamage = round(chosenWeapon.damage)
+                    self.current_room.enemy.health = round(self.current_room.enemy.health - weaponDamage)
+                    self.player.health -= round(enemyDamage)
                     chosenWeapon.durability -= 1.5
-                    self.print_str(self.main_window, "You deal " + str(weaponDamage) + " damage\n")
-                    self.print_str(self.main_window, "The enemy strikes you and deals " + str(enemyDamage) + " damage\n", 1)
+                    self.print_str(self.main_window, "You deal " + str(weaponDamage) + " damage")
+                    self.print_str(self.main_window, "The enemy strikes you and deals " + str(round(enemyDamage)) + " damage", 1)
                     self.refresh_scr()
                     curses.napms(2000)
                     if (chosenWeapon.durability <= 0) and (
                         self.current_room.enemy.health <= 0
                     ):
-                        self.print_str(self.main_window, "Your weapon broke!\n", 2)
+                        self.print_str(self.main_window, "Your weapon broke!", 2)
                         self.player.items.remove(chosenWeapon)
                         curses.napms(2000)
                         continue
                     elif chosenWeapon.durability <= 0:
-                        self.print_str(self.main_window, "Your weapon broke! Choose new weapon. \n", 2)
-                        self.player.items.remove(chosenWeapon)
+                        self.print_str(self.main_window, "Your weapon broke! Choose new weapon. ", 2)
+                        del self.player.items[chosenWeapon.name]
                     self.selected_option = -1
                     continue
                 if self.selected_option == 1:
@@ -304,22 +303,24 @@ class Game:
         self.options(self.status_window,item_names,"status_window",6)
 
         return item_names
-    #need to fix
+    #needs some tuning
     def npc_shop(self):
-        self.print_str(self.main_window, "Welcome to my shop!")
-        self.print_str(self.main_window, "Feel free to browse my selection and if you have something nice ill buy it off ya too!", 1)
+        
         option_int = 0
         k=0
+        buy = False
+
         while(k != ord('q')):
 
             self.clear_scr()
-            self.refresh_scr()
             self.window_boarders()
+            self.refresh_scr()
+            
             self.map_window.addstr(self.current_room.position[1],self.current_room.position[0], "X", curses.A_BLINK)
 
-            if k == curses.KEY_DOWN:
+            if k == curses.KEY_DOWN and self.current_option != self.options_max -1:
                 self.current_option += 1
-            if k == curses.KEY_UP:
+            if k == curses.KEY_UP and self.current_option != 0:
                 self.current_option -= 1
             if k == curses.KEY_LEFT:
                 self.current_window = "options_window"
@@ -337,73 +338,112 @@ class Game:
             selected_inventory = self.inventory()
            
             if option_int == 0:
+                self.clear_scr()
+                self.print_str(self.main_window, "Welcome to my shop!")
+                self.print_str(self.main_window, "Feel free to browse my selection and if you have something nice ill buy it off ya too!", 1)
+                self.window_boarders()
+                self.refresh_scr()
                 self.options(self.options_window, ["Buy", "Sell", "Leave"], "options_window")
-                if self.selected_option < 0:
-                    k = self.main_screen.getch()
-                    continue
-            if option_int == 1:
+                self.options_max = 3
                 if self.selected_option < 0:
                     k = self.main_screen.getch()
                     continue
                 if self.selected_option == 0:
-                    item_options = []
-                    self.print_str(self.main_window, "Here's what I've got for ya today:")
-                    for i, x in enumerate(self.current_room.npc.inventory):
-                        
-                        price_str = "Price: " + str(x.price)
-                        dura_str = "Durability: " + str(x.durability)
-                        pow_str = "Power: " + str(x.damage)
-                        '''
-                        self.print_str(self.main_window, x.name, i+1)
-                        self.print_str(self.main_window, price_str, i+1, 4)
-                        self.print_str(self.main_window, dura_str, i+1, len(dura_str)+4)
-                        self.print_str(self.main_window, pow_str, i+1, len(dura_str)+len(pow_str)+4)
-                        '''
-                        item_options.append(price_str + "     " + dura_str + "     " + pow_str)
-                    item_options.append("Nevermind")
-                    if int(buy) == i+1:
-                        os.system('clear')
-                        continue
-                    else:
-                        if self.player.gold < self.current_room.npc.inventory[int(buy)-1].price:
-                            os.system('clear')
-                            print("You don't have enough money for that!")
-                            time.sleep(2)
-                            os.system('clear')
-                            continue
-                        else:
-                            self.player.items.append(self.current_room.npc.inventory[int(buy)-1])
-                            self.player.gold -= self.current_room.npc.inventory[int(buy)-1].price
-                            os.system('clear')
-                            print("You obtained " + self.current_room.npc.inventory[int(buy)-1].name + "!\n")
-                            time.sleep(2)
-                            del self.current_room.npc.inventory[int(buy)-1]
-                            os.system('clear')
-                            continue
+                    self.selected_option = -1
+                    option_int = 1
+                    continue
                 if self.selected_option == 1:
-                    player_items = ''
-                    j = 0
-                    for y in self.player.items:
-                        j += 1
-                        if j < (len(self.player.items)):
-                            player_items += '(' + str(j) + ') ' + y.name + '       Durability: ' + str(y.durability) + '       Power: ' + str(y.damage) + '\n'
-                        if j == len(self.player.items):
-                            player_items += '(' + str(j) + ') ' + y.name + '       Durability: ' + str(y.durability) + '       Power: ' + str(y.damage)
+                    self.selected_option = -1
+                    option_int = 2
+                    # needs implementation
+                    continue
+                if self.selected_option == 2:
+                    self.selected_option = -1
+                    return
 
-                    sell = input("Which Item would you like to sell?\n" + player_items + '\n\n(' + str(j+1) + ') ' + "Nevermind\n")
-                    if int(sell) == j+1:
-                        os.system('clear')
+            # Buy Mechanics
+            if option_int == 1:
+                
+                item_options = []
+                self.print_str(self.main_window, "Here's what I've got for ya today:")
+                for x in self.current_room.npc.inventory:
+                    
+                    price_str = "Price: " + str(x.price)
+                    dura_str = "Durability: " + str(x.durability)
+                    pow_str = "Power: " + str(x.damage)
+                    item_options.append(x.name + "     " + price_str + "     " + dura_str + "     " + pow_str)
+                    
+                item_options.append("Nevermind")
+                self.options_max = len(item_options)
+                self.current_window = "main_window"
+                self.options(self.main_window, item_options, "main_window")
+
+                if self.selected_option < 0:
+                    k = self.main_screen.getch()
+                    continue
+                elif self.selected_option == len(item_options)-1:
+                    self.selected_option = -1
+                    option_int = 0
+                    self.current_window = "options_window"
+                    continue
+                else:
+                    
+                    if self.current_room.npc.inventory[self.selected_option].price > self.player.gold:
+                        self.main_window.clear()
+                        self.print_str(self.main_window, "You don't have enough money for that!")
+                        self.main_window.box()
+                        self.main_window.refresh()
+                        curses.napms(2000)
+                        self.selected_option = -1
                         continue
                     else:
-                        self.player.gold += self.player.items[int(sell)-1].price
-                        del self.player.items[int(sell)-1]
-                        os.system('clear')
-                        print("You now have " + str(self.player.gold) + " gold!")
-                        time.sleep(2)
-                        os.system('clear')
+                        self.player.items[self.current_room.npc.inventory[self.selected_option].name] = self.current_room.npc.inventory[self.selected_option]
+                        self.player.gold -= self.current_room.npc.inventory[self.selected_option].price
+                        self.main_window.clear()
+                        self.print_str(self.main_window,"You obtained " + self.current_room.npc.inventory[self.selected_option].name)
+                        self.main_window.box()
+                        self.main_window.refresh()
+                        del self.current_room.npc.inventory[self.selected_option]
+                        curses.napms(2000)
+                        self.selected_option = -1
                         continue
-                if self.selected_option == 0:
-                    return
+            if option_int == 2:
+                #selling mechanics
+                inventory_item_options = []
+                inventory_item_names = []
+                for key, val in self.player.items.items():
+                    inventory_item_names.append(key)
+                    price_str = "Price: " + str(val.price)
+                    dura_str = "Durability: " + str(val.durability)
+                    pow_str = "Power: " + str(val.damage)
+                    inventory_item_options.append(key + "     " + price_str + "     " + dura_str + "     " + pow_str)
+                    
+                inventory_item_options.append("Nevermind")
+                self.options_max = len(inventory_item_options)
+                self.current_window = "main_window"
+                self.options(self.main_window, inventory_item_options, "main_window")
+
+                if self.selected_option < 0:
+                    k = self.main_screen.getch()
+                    continue
+                elif self.selected_option == len(inventory_item_options)-1:
+                    self.selected_option = -1
+                    option_int = 0
+                    self.current_window = "options_window"
+                    continue
+                else:
+                    self.player.gold += self.player.items[inventory_item_names[self.selected_option]].price
+                    self.current_room.npc.inventory.append(self.player.items[inventory_item_names[self.selected_option]])
+                    del self.player.items[inventory_item_names[self.selected_option]]
+                    self.main_window.clear()
+                    self.print_str(self.main_window,"You Sold " + inventory_item_names[self.selected_option])
+                    self.main_window.box()
+                    self.main_window.refresh()
+                    curses.napms(2000)
+                    self.selected_option = -1
+                    continue
+
+                
     
     def clear_scr(self):
         self.map_window.clear()

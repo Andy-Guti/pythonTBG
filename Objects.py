@@ -6,7 +6,7 @@ class Npc:
         self.inventory = []
 
     def create_inventory(self):
-        melee_weapons = ["Rapier", "Broadsword", "shortsword"]
+        melee_weapons = ["Rapier", "Broadsword", "Shortsword"]
         ranged_weapons = ["Bow", "Crossbow", "Longbow"]
         magic_weapons = ["Wand", "Fire Staff", "Ice Staff"]
 
