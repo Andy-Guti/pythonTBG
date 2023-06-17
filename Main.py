@@ -98,6 +98,7 @@ def Main(stdscr):
         if k == curses.KEY_RIGHT:
             game.current_window = "status_window"
             game.current_option = 0
+            game.options_max = len(game.player.items.keys())
         if k == 10:
             if game.current_window == "status_window":
                 game.player.equiped_weapon = game.player.items[selected_inventory[game.current_option]]
@@ -138,7 +139,8 @@ def Main(stdscr):
             game.print_str(game.main_window, 'What do you choose to do?',1)
             enemy_room_options = ["Flee the room the way you came", "Stand and Fight"]
             game.options(game.options_window, enemy_room_options, "options_window")
-            game.options_max = len(enemy_room_options)
+            if game.current_window != "status_window":
+                game.options_max = len(enemy_room_options)
             game.refresh_scr()
             if game.selected_option < 0:
                 k = game.main_screen.getch()
@@ -172,7 +174,8 @@ def Main(stdscr):
             game.print_str(game.main_window,"You see a person with a shop setup in this room!")
             npc_room_options = ["Continue on into a different room", "Approach the Shop"]
             game.options(game.options_window, npc_room_options, "options_window")
-            game.options_max = len(npc_room_options)
+            if game.current_window != "status_window":
+                game.options_max = len(npc_room_options)
             game.refresh_scr()
             if game.selected_option < 0:
                 k = game.main_screen.getch()
@@ -202,7 +205,8 @@ def Main(stdscr):
             game.print_str(game.main_window, "What do you chose?", 2)
             drop_down_options = ["Take the Plunge!", "Stay on this floor for now"]
             game.options(game.options_window, drop_down_options, "options_window")
-            game.options_max = len(drop_down_options)
+            if game.current_window != "status_window":
+                game.options_max = len(drop_down_options)
             game.refresh_scr()
             if game.selected_option < 0:
                 k = game.main_screen.getch()
@@ -227,7 +231,8 @@ def Main(stdscr):
             avail_doors.sort()
             game.print_str(game.main_window,"Which door do you decide to enter?")
             game.options(game.options_window, avail_doors, "options_window")
-            game.options_max = len(avail_doors)
+            if game.current_window != "status_window":
+                game.options_max = len(avail_doors)
             directions1 = ['north', 'n', 'east', 'e']
             directions2 = ['south', 's', 'west', 'w']
             game.refresh_scr()

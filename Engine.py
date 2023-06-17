@@ -285,6 +285,7 @@ class Game:
                     self.current_room.enemy.health = round(self.current_room.enemy.health - weaponDamage)
                     self.player.health -= round(enemyDamage)
                     chosenWeapon.durability -= 1.5
+                    self.clear_scr()
                     self.print_str(self.main_window, "You deal " + str(weaponDamage) + " damage")
                     self.print_str(self.main_window, "The enemy strikes you and deals " + str(round(enemyDamage)) + " damage", 1)
                     self.refresh_scr()
@@ -293,7 +294,7 @@ class Game:
                         self.current_room.enemy.health <= 0
                     ):
                         self.print_str(self.main_window, "Your weapon broke!", 2)
-                        del self.player.items[chosenWeapon]
+                        del self.player.items[chosenWeapon.name]
                         self.player.equiped_weapon = None
                         curses.napms(2000)
                         continue
