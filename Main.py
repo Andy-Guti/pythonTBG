@@ -203,7 +203,7 @@ def Main(stdscr):
             game.print_str(game.main_window, "You find a ladder leading down to the next floor.")
             game.print_str(game.main_window, "There seems to be a drop so you can't make it back up after you drop down...", 1)
             game.print_str(game.main_window, "What do you chose?", 2)
-            drop_down_options = ["Take the Plunge!", "Stay on this floor for now"]
+            drop_down_options = ["Stay on this floor for now", "Take the Plunge!"]
             game.options(game.options_window, drop_down_options, "options_window")
             if game.current_window != "status_window":
                 game.options_max = len(drop_down_options)
@@ -211,12 +211,12 @@ def Main(stdscr):
             if game.selected_option < 0:
                 k = game.main_screen.getch()
                 continue
-            if game.selected_option == 0:
+            if game.selected_option == 1:
                 game.selected_option = -1
                 game.new_floor()
                 game.floor += 1
                 continue
-            if game.selected_option == 1:
+            if game.selected_option == 0:
                 game.selected_option = -1
                 skip = True
                 continue
