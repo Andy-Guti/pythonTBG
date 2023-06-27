@@ -238,9 +238,9 @@ class Game:
             self.window_boarders()
             self.map_window.addstr(self.current_room.position[1],self.current_room.position[0], "X", curses.A_BLINK)
 
-            if k == curses.KEY_DOWN:
+            if k == curses.KEY_DOWN and self.current_option != self.options_max -1:
                 self.current_option += 1
-            if k == curses.KEY_UP:
+            if k == curses.KEY_UP and self.current_option != 0:
                 self.current_option -= 1
             if k == curses.KEY_LEFT:
                 self.current_window = "options_window"
@@ -259,7 +259,12 @@ class Game:
             
             chosenWeapon = self.player.equiped_weapon
             enemyDamage = self.current_room.enemy.damage
-
+            if self.player.equiped_weapon == None:
+                self.main_window.clear()
+                self.print_str(self.main_window, "Your weapon broke! Please equip a new one.")
+                self.main_window.refresh()
+                k = self.main_screen.getch()
+                continue
             if self.current_room.enemy.health <= 0:
                 self.current_room.has_enemy = False
                 self.print_str(self.main_window,"You have defeated the enemy!")
@@ -275,6 +280,7 @@ class Game:
             else:
                 self.print_str(self.main_window, "Enemy Health: " + str(self.current_room.enemy.health))
                 self.options(self.options_window, ["Attack","Flee"], "options_window")
+                self.options_max = 2
 
                 if self.selected_option < 0:
                     k = self.main_screen.getch()
@@ -285,7 +291,7 @@ class Game:
                     self.current_room.enemy.health = round(self.current_room.enemy.health - weaponDamage)
                     self.player.health -= round(enemyDamage)
                     chosenWeapon.durability -= 1.5
-                    self.clear_scr()
+                    self.main_window.clear()
                     self.print_str(self.main_window, "You deal " + str(weaponDamage) + " damage")
                     self.print_str(self.main_window, "The enemy strikes you and deals " + str(round(enemyDamage)) + " damage", 1)
                     self.refresh_scr()
