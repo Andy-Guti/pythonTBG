@@ -473,6 +473,7 @@ class Game:
         self.status_window.clear()
         self.options_window.clear()
         self.main_window.clear()
+
         #self.main_screen.clear()
         return
 

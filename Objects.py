@@ -15,7 +15,7 @@ class Npc:
             rand_num = random.randint(0, 2)
             new_weapon = Weapon()
             new_weapon.damage = 14
-            new_weapon.durability = 32
+            new_weapon.durability = 32 
             new_weapon.price = 15
             if increment == 0:
                 new_weapon.type = "Melee"
@@ -40,6 +40,8 @@ class Npc:
 class Enemy:
 
     def __init__(self):
+        self.name = ""
+        self.type = ""
         self.health = 50
         self.damage = 0
         self.gold = random.randint(1, 5)
