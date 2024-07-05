@@ -42,6 +42,7 @@ class Enemy:
     def __init__(self):
         self.name = ""
         self.type = ""
+        self.max_health = 50
         self.health = 50
         self.damage = 0
         self.gold = random.randint(1, 5)
@@ -57,6 +58,7 @@ class Player:
         start_weapon.type = "Melee"
         self.items = {}
         self.items[start_weapon.name] = start_weapon
+        self.max_health = 100
         self.health = 100
         self.experience = 0
         self.level = 0
@@ -100,6 +102,7 @@ class Room:
         self.has_enemy = False
         self.position = (0, 0)
         self.ladder = False
+        self.explored = False
 
     def addNeighbor(self, direction, id):
         self.neighbor[direction] = id

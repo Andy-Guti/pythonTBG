@@ -44,6 +44,7 @@ class Game:
         self.current_room.has_enemy = False
         self.current_room.has_item = False
         self.current_room.position = (self.map_center_x, self.map_center_y)
+        self.current_room.explored = True
         
         #self.draw_square(stdscr, 6, 4, self.current_room.position[0], self.current_room.position[1])
 
@@ -53,6 +54,7 @@ class Game:
         # self.create_game()
         self.create_random_map()
         # self.med_game()
+
     def print_str(self, stdscr, str, y=0, x=0):
         stdscr.addstr(y+2,x+2,str)
         return
@@ -75,7 +77,8 @@ class Game:
     def draw_map(self,stdscr):
         try:
             for room in self.roomDict.values():
-                self.draw_square(stdscr,6,4,room.position[0],room.position[1])
+                if room.explored:
+                    self.draw_square(stdscr,6,4,room.position[0],room.position[1])
         except:
             return False
 
@@ -160,6 +163,7 @@ class Game:
                 new_room.enemy.damage,
                 #new_room.item,
             ) = self.room_setup(floor_modifier)
+            new_room.enemy.max_health += floor_modifier
             new_room.enemy.health += floor_modifier
             
             if self.floor % 3 == 0:
@@ -204,6 +208,56 @@ class Game:
                 continue
         return
 
+    def wait_continue(self):
+
+        k=0
+        max_y, max_x = self.main_window.getmaxyx()
+        message = "Press 'c' key to continue... "
+        while k != ord('c'):
+            self.print_str(self.main_window, message, max_y-3, max_x-3-len(message))
+            self.main_window.refresh()
+            k = self.main_screen.getch()
+        return
+
+    def health_bar(self, stdscr, str, health_percentage):
+
+        bar_len = int(20 * health_percentage)
+        health_bar = ""
+        for i in range(bar_len):
+            health_bar += " "
+        self.print_str(stdscr, str)
+        if health_percentage > 0.5:
+            color = curses.color_pair(4)
+        elif health_percentage > 0.15:
+            color = curses.color_pair(5)
+        else:
+            color = curses.color_pair(6)
+        stdscr.addstr(2, len(str) + 1, health_bar, color | curses.A_BLINK)
+
+    def parse_inputs(self, k, selected_inventory):
+        self.clear_scr()
+        self.refresh_scr()
+        self.window_boarders()
+        self.map_window.addstr(self.current_room.position[1],self.current_room.position[0], "X", curses.A_BLINK)
+
+        if k == curses.KEY_DOWN and self.current_option != self.options_max -1:
+            self.current_option += 1
+        if k == curses.KEY_UP and self.current_option != 0:
+            self.current_option -= 1
+        if k == curses.KEY_LEFT:
+            self.current_window = "options_window"
+            self.current_option = 0
+        if k == curses.KEY_RIGHT:
+            self.current_window = "status_window"
+            self.current_option = 0
+        if k == 10:
+            if self.current_window == "status_window":
+                self.player.equiped_weapon = self.player.items[selected_inventory[self.current_option]]
+            else:
+                self.selected_option = self.current_option
+                self.current_option = 0
+
+
     def new_floor(self):
         self.roomDict = {}
         self.numRooms = 0
@@ -214,6 +268,7 @@ class Game:
         self.current_room.has_enemy = False
         self.current_room.has_item = False
         self.current_room.position = (self.map_center_x, self.map_center_y)
+        self.current_option.explored = True
 
         #self.draw_square(self.current_room.position)
 
@@ -224,7 +279,7 @@ class Game:
         self.create_random_map()
         return
     # needs some tuning
-    def combat(self):
+    def combat(self, selected_inventory):
         # combat system
         k=0
         self.current_option = 0
@@ -233,11 +288,14 @@ class Game:
         
 
         while self.current_room.has_enemy is True:
+            
+            """
             self.clear_scr()
             self.refresh_scr()
             self.window_boarders()
             self.map_window.addstr(self.current_room.position[1],self.current_room.position[0], "X", curses.A_BLINK)
 
+            
             if k == curses.KEY_DOWN and self.current_option != self.options_max -1:
                 self.current_option += 1
             if k == curses.KEY_UP and self.current_option != 0:
@@ -254,6 +312,9 @@ class Game:
                 else:
                     self.selected_option = self.current_option
                     self.current_option = 0
+            """
+            
+            self.parse_inputs(k, selected_inventory)
             k=0
             selected_inventory = self.inventory()
             
@@ -270,7 +331,8 @@ class Game:
                 self.print_str(self.main_window,"You have defeated the enemy!")
                 self.print_str(self.main_window,"The enemy dropped " + str(self.current_room.enemy.gold) + " gold!", 1)
                 self.main_window.refresh()
-                curses.napms(3000)
+                #curses.napms(3000)
+                self.wait_continue()
                 self.player.gold += self.current_room.enemy.gold
                 break
             if self.player.health <= 0:
@@ -278,7 +340,9 @@ class Game:
                 self.main_window.refresh()
                 return 0
             else:
-                self.print_str(self.main_window, "Enemy Health: " + str(self.current_room.enemy.health))
+                
+                #self.print_str(self.main_window, "Enemy Health: " + str(self.current_room.enemy.health))
+                self.health_bar(self.main_window, "Enemy Health: ", (self.current_room.enemy.health/self.current_room.enemy.max_health))
                 self.options(self.options_window, ["Attack","Flee"], "options_window")
                 self.options_max = 2
 
@@ -317,13 +381,14 @@ class Game:
     def inventory(self):
         height, width = self.status_window.getmaxyx()
         gold = "Gold: " + str(self.player.gold)
-        health = "Health: " + str(self.player.health)
+        #health = "Health: " + str(self.player.health)
         item_names = []
         for item in self.player.items.keys():
             item_names.append(item)
 
         self.status_window.addstr(2,width-(len(gold)+3),gold)
-        self.status_window.addstr(2,2,health)
+        #self.status_window.addstr(2,2,health)
+        self.health_bar(self.status_window, "Health: ", (self.player.health/self.player.max_health))
         self.print_str(self.status_window, "Inventory",4)
         self.options(self.status_window,item_names,"status_window",6)
 
@@ -464,9 +529,7 @@ class Game:
                     self.main_window.refresh()
                     curses.napms(2000)
                     self.selected_option = -1
-                    continue
-
-                
+                    continue           
     
     def clear_scr(self):
         self.map_window.clear()

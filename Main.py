@@ -54,6 +54,9 @@ def Main(stdscr):
     curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_GREEN)
+    curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+    curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_RED)
     
     game.game_setup()
     
@@ -73,9 +76,10 @@ def Main(stdscr):
     game.print_str(game.main_window, 'Good Luck."', 7)
     game.refresh_scr()
     curses.napms(1000)
-    game.print_str(game.main_window, "Press any key to start...", game.main_window.getmaxyx()[0]-4)
+    #game.print_str(game.main_window, "Press any key to start...", game.main_window.getmaxyx()[0]-4)
+    game.wait_continue()
     game.refresh_scr()
-    x = game.main_screen.getch()
+    k = game.main_screen.getch()
     skip = False
     game.clear_scr()
     
@@ -83,6 +87,8 @@ def Main(stdscr):
         # For NPC
          
         curses.napms(16)
+
+        """
         game.clear_scr()
         game.refresh_scr()
         game.window_boarders()
@@ -105,6 +111,8 @@ def Main(stdscr):
             else:
                 game.selected_option = game.current_option
                 game.current_option = 0
+        """
+        game.parse_inputs(k,selected_inventory)
         k=0
         selected_inventory = game.inventory()
         
@@ -162,7 +170,7 @@ def Main(stdscr):
                     game.main_window.refresh()
                     curses.napms(2000)
                     continue
-                success = game.combat()
+                success = game.combat(selected_inventory)
                 if (success == 0):
                     break
                 game.selected_option = -1
@@ -257,6 +265,7 @@ def Main(stdscr):
                 next_room = game.roomDict[game.roomDict[game.current_room.id].neighbor[direction]]
 
                 game.current_room = next_room
+                game.current_room.explored = True
                 game.came_from = came_from
                 game.update_pos()
                 game.selected_option = -1
