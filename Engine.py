@@ -268,7 +268,7 @@ class Game:
         self.current_room.has_enemy = False
         self.current_room.has_item = False
         self.current_room.position = (self.map_center_x, self.map_center_y)
-        self.current_option.explored = True
+        self.current_room.explored = True
 
         #self.draw_square(self.current_room.position)
 
